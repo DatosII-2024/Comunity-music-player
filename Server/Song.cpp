@@ -1,45 +1,45 @@
-//
-// Created by erick on 15/02/24.
-//
-
-
-
 #include "iostream"
 #include "Song.h"
+#include "string"
+
 using namespace std;
 
+// Constructor
+Song::Song(string name, string address, string album, string artist, int year)
+    : name(name), address(address), album(album), artist(artist), year(year), next(nullptr), prev(nullptr) {}
 
-Song::Song(string _Name, string _Album, string _Artist, int _Year, string _Adress) {
-    Name = _Name;
-    Adress = _Adress;
-    Album = _Album;
-    Artist = _Artist;
-    Year = _Year;
-
+// Setters
+void Song::setNext(Song* newNext) {
+    next = newNext;
+}
+void Song::setPrev(Song* newPrev) {
+    prev = newPrev;
 }
 
-string Song::getName() {
-    cout<<Name<<endl;
-    return Name;
+// Getters
+string Song::getName(){
+    return name;
 }
-string Song::getAlbum() {
-    cout<<Album<<endl;
-    return Album;
-}
-string Song::getArtis(){
-    cout<<Artist<<endl;
-    return Artist;
-}
-int Song::getYear() {
-    cout<<Year<<endl;
-    return Year;
-}
-int main(){
-    Song s = Song("What lies Beaneth","Not","Braking Benjamin",2011,"alksdjkjakds");
-    s.getYear();
-    s.getAlbum();
-    s.getName();
-    s.getArtis();
 
-    return 0;
+string Song::getAddress(){
+    return address;
+}
+
+string Song::getAlbum(){
+    return album;
+}
+
+string Song::getArtist(){
+    return artist;
+}
+
+int Song::getYear(){
+    return year;
+}
+Song* Song::getNext(){
+    return next;
+}
+
+Song* Song::getPrev(){
+    return prev;
 }

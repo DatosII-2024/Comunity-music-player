@@ -1,25 +1,31 @@
-//
-// Created by erick on 15/02/24.
-//
-
 #ifndef COMUNITY_MUSIC_PLAYER_SONG_H
 #define COMUNITY_MUSIC_PLAYER_SONG_H
+
+#include <string>
 
 using namespace std;
 
 class Song {
 private:
-    string Name;
-    string Album;
-    string Artist;
-    int Year;
-    string Adress;
+    string name;
+    string address;
+    string album;
+    string artist;
+    int year;
+    Song* next;
+    Song* prev;
+
 public:
-    Song(string,string,string,int,string);
+    Song(string,string,string,string,int);
+    void setNext(Song*);
+    void setPrev(Song*);
     string getName();
+    string getAddress();
     string getAlbum();
-    string getArtis();
+    string getArtist();
     int getYear();
+    Song* getNext();
+    Song* getPrev();
 };
 
 
