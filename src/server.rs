@@ -6,10 +6,6 @@ use std::sync::mpsc;
 use crate::song::Song;
 
 
-
-
-
-
 pub fn start_server(sender: mpsc::Sender<Song>) {
     std::thread::spawn(|| {
         if let Ok(listener) = TcpListener::bind("127.0.0.1:8080") {

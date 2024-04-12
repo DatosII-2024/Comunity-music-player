@@ -1,9 +1,9 @@
-use fltk::{app, prelude::*, window, button, frame};
+use fltk::{app, prelude::*, button, frame, window};
+use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::mpsc;
 use std::thread;
-use std::io::{Read};
-use serde::{Deserialize};
+use serde::{Deserialize, Serialize};
 mod server;
 use server::start_server;
 mod song;
@@ -28,6 +28,25 @@ fn main() {
     let mut btn_playlist = button::Button::new(350, 60, 80, 40, "Playlist");
     btn_playlist.set_color(fltk::enums::Color::from_u32(0xFFE4C4));
     btn_playlist.set_label_size(15);
+
+      // Lógica de vote up
+      btn_upvote.handle(move |_btn_upvote, _ev| {
+
+        // Envía el voto hacia arriba y lo conecta
+        if let Ok(mut stream) = TcpStream::connect("127.0.0.1:8080") {
+           
+            // manda el comando que diga que se presionò exactamente es
+            let command = "vote_up";
+
+            // Envía el comando al servidor a través del socket
+            let _ = stream.write_all(command.as_bytes());
+            //probar si funca
+        }
+        // Retorna true para indicar que el evento ha sido manejado
+        true 
+       }); 
+        
+
 
     // Titulos 
     let mut title_label = frame::Frame::new(10, 10, 580, 40, "Community Music Player");
@@ -77,12 +96,12 @@ fn main() {
         let mut album_frame = frame::Frame::new(50, 200, 500, 30, "");
         let mut genre_frame = frame::Frame::new(50, 250, 500, 30, "");
 
+        let mut buffer = [0; 1024];
         if let Ok(listener) = TcpListener::bind("127.0.0.1:8080") {
             for stream in listener.incoming() {
                 match stream {
                     Ok(mut stream) => {
                         // Manejo del stream del socket
-                        let mut buffer = [0; 1024];
                         match stream.read(&mut buffer) {
                             Ok(n) => {
                                 // Convertir los datos recibidos a una estructura Song
@@ -108,7 +127,26 @@ fn main() {
         }
     });
 
-    // Hilo principal: actualiza la interfaz gráfica con los datos recibidos del servidor
+    // Conexión TCP al servidor
+    let mut stream = match TcpStream::connect("127.0.0.1:8080") {
+        Ok(stream) => stream,
+        Err(e) => {
+            eprintln!("Error al conectar al servidor: {}", e);
+            return;
+        }
+    };
+
+    // Manejo de eventos de botones
+    btn_upvote.handle(move |_btn_upvote, _ev| {
+        let command = "vote_up";
+        if let Err(e) = stream.write_all(command.as_bytes()) {
+            eprintln!("Error al enviar comando al servidor: {}", e);
+        }
+        // Retorna true para indicar que el evento ha sido manejado
+        true
+    });
+
+    // Bucle principal: actualiza la interfaz gráfica con los datos de la canción
     while app.wait() {
         // Recibe la canción del canal y actualiza la interfaz gráfica
         if let Ok(song) = receiver.try_recv() {
