@@ -107,8 +107,6 @@ fn main() {
     }
     
 
-
-
     // Titulos 
     let mut title_label = frame::Frame::new(10, 10, 580, 40, "Community Music Player");
     title_label.set_label_size(30);
