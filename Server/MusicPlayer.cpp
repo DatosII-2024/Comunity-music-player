@@ -1,68 +1,211 @@
-#include "Song.h"
-#include <iostream>
+#include "MusicPlayer.h"
 
-#include <glog/logging.h>
+MusicPlayer::MusicPlayer() {
+    set_title("Music Player");
+    set_default_size(400, 200);
+
+    // Organiza los widgets en la ventana utilizando boxes:
+    m_VBoxMain.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    add(m_VBoxMain);
+
+    // Configura la barra de progreso:
+    m_ScaleProgress.set_draw_value(false); // Ocultar el valor numérico de la barra de progreso
+    m_ScaleProgress.set_range(0.0, 100.0); // El rango debería ajustarse según la duración de la canción
+
+    // Configura las cajas horizontales para el tiempo y la barra de progreso:
+    m_HBoxTop.pack_start(m_LabelStartTime);
+    m_HBoxTop.pack_end(m_LabelEndTime);
+
+    // Configura la caja horizontal para los botones:
+    m_VBoxButtons.pack_start(m_ButtonPrevious);
+    m_VBoxButtons.pack_start(m_ButtonPlay);
+    m_VBoxButtons.pack_start(m_ButtonPause);
+    m_VBoxButtons.pack_start(m_ButtonNext);
+    m_VBoxButtons.set_homogeneous(true); // Hace que todos los botones tengan el mismo ancho
+
+    // Configura el slider de volumen:
+    m_VolumeScale.set_range(0.0, 1.0); // Rango de volumen entre 0.0 y 1.0
+    m_VolumeScale.set_value(1.0); // Valor inicial de volumen al máximo
+    m_VolumeScale.set_inverted(true); // Invertir la dirección del slider
+    m_VolumeScale.set_size_request(100, -1); // Tamaño fijo del slider
+
+    // Añade el slider de volumen a la caja horizontal de abajo:
+    m_HBoxBottom.pack_start(m_VolumeScale);
+
+    // Añade las cajas horizontales y la barra de progreso a la caja vertical principal:
+    m_VBoxMain.pack_start(m_HBoxTop);
+    m_VBoxMain.pack_start(m_ScaleProgress);
+    m_VBoxMain.pack_start(m_HBoxBottom);
+    m_HBoxBottom.pack_start(m_VBoxButtons);
+    m_VBoxMain.pack_start(m_LabelSongTitle);
+    m_VBoxMain.pack_start(m_LabelArtistName);
+    m_VBoxMain.pack_start(m_LabelAlbumName);
 
 
-class MusicPlayer {
-private:
-    Song* current;
-    bool isPlaying;
+    // Conecta las señales de los botones con sus manejadores de eventos:
+    m_ButtonPlay.signal_clicked().connect(sigc::mem_fun(*this, &MusicPlayer::on_button_play_clicked));
+    m_ButtonPause.signal_clicked().connect(sigc::mem_fun(*this, &MusicPlayer::on_button_pause_clicked));
+    m_ButtonNext.signal_clicked().connect(sigc::mem_fun(*this, &MusicPlayer::on_button_next_clicked));
+    m_ButtonPrevious.signal_clicked().connect(sigc::mem_fun(*this, &MusicPlayer::on_button_previous_clicked));
+    m_ScaleProgress.signal_value_changed().connect(sigc::mem_fun(*this, &MusicPlayer::on_scale_progress_value_changed));
+    // Conecta la señal del slider de volumen con su manejador de evento:
+    m_VolumeScale.signal_value_changed().connect(sigc::mem_fun(*this, &MusicPlayer::on_volume_value_changed));
+    Glib::signal_timeout().connect(sigc::mem_fun(*this, &MusicPlayer::on_timeout), 1000); // Update progress bar every second
 
+    show_all_children();
+    load_songs_from_directory("/home/erick/music");
+}
 
-public:
-    // Constructor
-    MusicPlayer(Song* song) : current(song), isPlaying(false)  {google::InitGoogleLogging("Comunity_music_player");}
+MusicPlayer::~MusicPlayer() {
+    if (pipeline) {
+        gst_element_set_state(pipeline, GST_STATE_NULL);
+        gst_object_unref(GST_OBJECT(pipeline));
+    }
+}
 
-    // Destructor
+void MusicPlayer::on_button_play_clicked() {
+    GstState state;
+    gst_element_get_state(pipeline, &state, NULL, 0);
 
-    // Método para preparar la reproducción
-    void ready() {
-        if (!isPlaying) {
-            if (true) {
-                LOG(ERROR) << "Error loading " << current->getName() << std::endl;
+    // Si la canción está pausada, reanuda la reproducción.
+    if (state == GST_STATE_PAUSED) {
+        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+        playing = true;
+    } else if (!playing && !playlist.empty() && state != GST_STATE_PLAYING) {
+        // Si no hay nada reproduciéndose, inicia la reproducción de la canción actual o la primera canción.
+        currentSongIndex = (currentSongIndex == -1) ? 0 : currentSongIndex;
+        play_song(playlist[currentSongIndex]);
+    }
+}
+
+void MusicPlayer::on_button_pause_clicked() {
+    if (playing) {
+        gst_element_set_state(pipeline, GST_STATE_PAUSED);
+        playing = false;
+    } else{
+
+    }
+}
+
+void MusicPlayer::on_button_next_clicked() {
+    if (currentSongIndex + 1 < playlist.size()) {
+        ++currentSongIndex;
+        play_song(playlist[currentSongIndex]);
+    }
+}
+
+void MusicPlayer::on_button_previous_clicked() {
+    if (currentSongIndex > 0) {
+        --currentSongIndex;
+        play_song(playlist[currentSongIndex]);
+    }
+}
+
+void MusicPlayer::play_song(const std::string& filepath) {
+    if (pipeline) {
+        gst_element_set_state(pipeline, GST_STATE_NULL);
+        gst_object_unref(GST_OBJECT(pipeline));
+    }
+
+    std::string uri = "file://" + filepath;
+    pipeline = gst_parse_launch(("playbin uri=" + uri).c_str(), NULL);
+    gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    playing = true;
+
+    // Espera a que GStreamer prepare la media y pueda reportar la duración
+    gst_element_get_state(pipeline, NULL, NULL, GST_CLOCK_TIME_NONE);
+
+    gint64 duration = 0;
+    if (gst_element_query_duration(pipeline, GST_FORMAT_TIME, &duration)) {
+        // Convierte la duración a segundos
+        int duration_seconds = GST_TIME_AS_SECONDS(duration);
+        int minutes = duration_seconds / 60;
+        int seconds = duration_seconds % 60;
+        m_LabelEndTime.set_text(Glib::ustring::compose("%1:%2", minutes, seconds < 10 ? "0" + std::to_string(seconds) : std::to_string(seconds)));
+    }
+
+    update_song_info();
+}
+
+bool MusicPlayer::on_timeout() {
+    if (!pipeline || !playing) return true; // Continuar llamando la función si no está reproduciendo
+
+    gint64 pos = 0;
+    if (gst_element_query_position(pipeline, GST_FORMAT_TIME, &pos)) {
+        // Convierte la posición a segundos
+        int pos_seconds = GST_TIME_AS_SECONDS(pos);
+        int minutes = pos_seconds / 60;
+        int seconds = pos_seconds % 60;
+        m_LabelStartTime.set_text(Glib::ustring::compose("%1:%2", minutes, seconds < 10 ? "0" + std::to_string(seconds) : std::to_string(seconds)));
+
+        // También actualiza el valor del slider de progreso si deseas
+        gint64 duration = 0;
+        if (gst_element_query_duration(pipeline, GST_FORMAT_TIME, &duration)) {
+            double newPos = (double)pos / (double)duration;
+            m_ScaleProgress.set_value(newPos * 100.0);
+        }
+    }
+
+    return true; // Mantener la llamada a timeout activa
+}
+
+void MusicPlayer::update_song_info() {
+    if (currentSongIndex >= 0 && currentSongIndex < playlist.size()) {
+        GstTagList* tags = NULL;
+        g_signal_emit_by_name(pipeline, "get-audio-tags", 0, &tags);
+        if (tags) {
+            gchar* title = NULL;
+            gchar* artist = NULL;
+            gchar* album = NULL;
+
+            if (gst_tag_list_get_string(tags, GST_TAG_TITLE, &title)) {
+                m_LabelSongTitle.set_text("Title: " + std::string(title));
+                g_free(title);
+            } else {
+                m_LabelSongTitle.set_text("Title: Unknown");
             }
-        } else {
-            LOG(INFO) << "Ya se encuentra en reproducción." << std::endl;
-        }
-        while (getStatus()){
 
-        }
-    }
+            if (gst_tag_list_get_string(tags, GST_TAG_ARTIST, &artist)) {
+                m_LabelArtistName.set_text("Artist: " + std::string(artist));
+                g_free(artist);
+            } else {
+                m_LabelArtistName.set_text("Artist: Unknown");
+            }
 
-    // Método para reproducir o pausar la canción
-    void play() {
-        if (!isPlaying) {
+            if (gst_tag_list_get_string(tags, GST_TAG_ALBUM, &album)) {
+                m_LabelAlbumName.set_text("Album: " + std::string(album));
+                g_free(album);
+            } else {
+                m_LabelAlbumName.set_text("Album: Unknown");
+            }
 
-            isPlaying = true;
-            LOG(INFO) << "Reproduciendo la canción." << std::endl;
-        } else {
-            isPlaying = false;
-
-            LOG(INFO) << "Pausando la reproducción." << std::endl;
+            gst_tag_list_unref(tags);
         }
     }
+}
 
-    bool getStatus(){
-        return true;
+void MusicPlayer::on_scale_progress_value_changed() {
+    if (!pipeline || !playing) return;
+    // Calcula el nuevo tiempo basado en la posición del slider y realiza un seek
+    gint64 duration;
+    if (gst_element_query_duration(pipeline, GST_FORMAT_TIME, &duration)) {
+        gdouble new_value = m_ScaleProgress.get_value();
+        gint64 new_time = (gint64)((new_value / 100.0) * (gdouble)duration);
+        gst_element_seek_simple(pipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, new_time);
     }
+}
 
-    // Método para avanzar a la siguiente canción
-    void next() {
-        isPlaying = false;
-        current = current->getNext();
-        LOG(INFO) << "Reproduciendo la siguiente canción." << std::endl;
-        ready();
+void MusicPlayer::on_volume_value_changed() {
+    if (pipeline) {
+        gdouble volume = m_VolumeScale.get_value();
+        g_object_set(pipeline, "volume", volume, NULL);
     }
+}
 
-    // Método para retroceder a la canción anterior
-    void previous() {
-        current = current->getPrev();
-        LOG(INFO) << "Reproduciendo la canción anterior." << std::endl;
-        ready();
-    }
-    // Método para detener la reproducción y liberar los recursos de audio
-    void cleanup() {
+void MusicPlayer::load_songs_from_directory(const std::string& path) {
+    for (const auto& entry : fs::directory_iterator(path)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".mp3") {
 
+        }
     }
-};
+}
