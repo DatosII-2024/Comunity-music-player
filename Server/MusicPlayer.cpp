@@ -3,7 +3,7 @@
 
 MusicPlayer::MusicPlayer() {
     set_title("Music Player");
-    set_default_size(600, 400);
+    set_default_size(600, 800);
 
     // Organiza los widgets en la ventana utilizando boxes:
     m_VBoxMain.set_orientation(Gtk::ORIENTATION_VERTICAL);
@@ -44,6 +44,16 @@ MusicPlayer::MusicPlayer() {
     m_VBoxMain.pack_start(m_ScaleProgress);
     m_VBoxMain.pack_start(m_HBoxBottom);
     m_HBoxBottom.pack_start(m_VBoxButtons);
+    m_VBoxMain.pack_start(m_LabelSong1);
+    m_VBoxMain.pack_start(m_LabelSong2);
+    m_VBoxMain.pack_start(m_LabelSong3);
+    m_VBoxMain.pack_start(m_LabelSong4);
+    m_VBoxMain.pack_start(m_LabelSong5);
+    m_VBoxMain.pack_start(m_LabelSong6);
+    m_VBoxMain.pack_start(m_LabelSong7);
+    m_VBoxMain.pack_start(m_LabelSong8);
+    m_VBoxMain.pack_start(m_LabelSong9);
+    m_VBoxMain.pack_start(m_LabelSong10);
 
 
 
@@ -222,6 +232,30 @@ void MusicPlayer::update_song_info() {
         }
         current->setFull();
     }
+    for (int s=0; s<10;s++ ){
+        current = current->getNext();
+        if(s==0){
+            m_LabelSong1.set_text(current->getName());
+        }else if(s==1){
+            m_LabelSong2.set_text(current->getName());
+        }else if(s==2){
+            m_LabelSong3.set_text(current->getName());
+        }else if(s==3){
+            m_LabelSong4.set_text(current->getName());
+        }else if(s==4){
+            m_LabelSong5.set_text(current->getName());
+        }else if(s==5){
+            m_LabelSong6.set_text(current->getName());
+        }else if(s==6){
+            m_LabelSong7.set_text(current->getName());
+        }else if(s==7){
+            m_LabelSong8.set_text(current->getName());
+        }else if(s==8){
+            m_LabelSong9.set_text(current->getName());
+        }else if(s==9){
+            m_LabelSong10.set_text(current->getName());
+        }
+    }
     m_LabelSongTitle.set_text("Title: " + current->getName());
     m_LabelArtistName.set_text("Artist: " + current->getArtist());
     m_LabelAlbumName.set_text("Album: " + current->getAlbum());
@@ -252,8 +286,8 @@ void MusicPlayer::on_volume_value_changed() {
 void MusicPlayer::load_songs_from_directory(const std::string& path) {
     for (const auto& entry : fs::directory_iterator(path)) {
         if (entry.is_regular_file() && entry.path().extension() == ".mp3") {
-            playList->addSong("",entry.path().string(),"","","");
-
+            Song* newSong = new Song("", entry.path().string(), "", "","");
+            playList->addSong(newSong);
         }
     }
     current = playList->getHeat();

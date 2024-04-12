@@ -3,14 +3,22 @@
 #define COMUNITY_MUSIC_PLAYER_ARTIST_H
 #include <string>
 #include <vector>
+#include "ListaSong.cpp"
 
 class Artist {
 private:
-
-    std::vector<std::string> Songs;
-
+    string artist;
+    ListaSong* list;
+    Artist* next;
 public:
-    Artist(std::string);
+    Artist(string);
+    void addSong(Song*);
+    void setNext(Artist*);
+    string getArtist();
+    Song* getSong(int);
+    Artist* getNext();
+
+
 
 
 };

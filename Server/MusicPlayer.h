@@ -55,6 +55,16 @@ protected:
     Gtk::Label m_LabelSongTitle;
     Gtk::Label m_LabelAlbumName;
     Gtk::Label m_LabelSongGener;
+    Gtk::Label m_LabelSong1;
+    Gtk::Label m_LabelSong2;
+    Gtk::Label m_LabelSong3;
+    Gtk::Label m_LabelSong4;
+    Gtk::Label m_LabelSong5;
+    Gtk::Label m_LabelSong6;
+    Gtk::Label m_LabelSong7;
+    Gtk::Label m_LabelSong8;
+    Gtk::Label m_LabelSong9;
+    Gtk::Label m_LabelSong10;
 
     // GStreamer elements:
     GstElement *pipeline;

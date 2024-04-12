@@ -22,8 +22,7 @@ public:
     }
 
     // Método para agregar una nueva canción al final de la lista
-    void addSong(std::string name, std::string address, std::string album, std::string artist,std::string genero) {
-        Song* newSong = new Song(name, address, artist, album,genero);
+    void addSong(Song* newSong) {
         if (head == nullptr) {
             head = newSong;
             head->setNext(head);

@@ -31,6 +31,7 @@ add_executable(Comunity_music_player
                 Server/Socket.cpp
         Server/Artist.h
         Server/Artist.cpp
+        Server/listArtist.cpp
 )
 
 target_link_libraries(Comunity_music_player

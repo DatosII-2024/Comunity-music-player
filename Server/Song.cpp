@@ -79,9 +79,6 @@ bool Song::getFull() {
 string Song::getId(){
     return id;
 }
-
-
-
 string Song::generate_uuid() {
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     return boost::uuids::to_string(uuid);
