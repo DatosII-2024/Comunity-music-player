@@ -42,6 +42,7 @@ public:
     string getAlbum();
     string getArtist();
     string getGenero();
+    string getId();
     int getUp();
     int getDown();
     bool getFull();

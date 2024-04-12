@@ -1,6 +1,5 @@
 #include "iostream"
 #include "Song.h"
-#include "string"
 
 using namespace std;
 
@@ -25,6 +24,21 @@ void Song::setDown(int d) {
 }
 void Song::setFull() {
     full = true;
+}
+void Song::setName(string n) {
+    name = n;
+}
+
+void Song::setAlbun(string a) {
+    album = a;
+}
+
+void Song::setArtist(string a) {
+    artist = a;
+}
+
+void Song::setGenero(string g) {
+    genero = g;
 }
 
 // Getters
@@ -62,22 +76,11 @@ Song* Song::getPrev(){
 bool Song::getFull() {
     return full;
 }
-
-void Song::setName(string n) {
-    name = n;
+string Song::getId(){
+    return id;
 }
 
-void Song::setAlbun(string a) {
-    album = a;
-}
 
-void Song::setArtist(string a) {
-    artist = a;
-}
-
-void Song::setGenero(string g) {
-    genero = g;
-}
 
 string Song::generate_uuid() {
     boost::uuids::uuid uuid = boost::uuids::random_generator()();

@@ -9,6 +9,10 @@
 #include <gst/tag/tag.h>
 #include "ListaSong.cpp"
 #include "Song.h"
+#include <thread>
+#include "Socket.cpp"
+#include <random>
+#include "iostream"
 
 namespace fs = std::filesystem;
 
@@ -24,6 +28,7 @@ protected:
     void on_button_next_clicked();
     void on_button_previous_clicked();
     void on_button_delete_clicked();
+    void on_button_comunity_clicked();
     void on_scale_progress_value_changed();
     void on_volume_value_changed();
     bool on_timeout(); // Actualiza la barra de progreso
@@ -41,6 +46,7 @@ protected:
     Gtk::Button m_ButtonPause{"〓"};
     Gtk::Button m_ButtonNext{"↠"};
     Gtk::Button m_ButtonDelete{"Delete"};
+    Gtk::Button m_ButtonComunity{"Comunity"};
     Gtk::Label m_LabelStartTime{"00:00"};
     Gtk::Label m_LabelEndTime{"00:00"};
     Gtk::Scale m_ScaleProgress{Gtk::ORIENTATION_HORIZONTAL};

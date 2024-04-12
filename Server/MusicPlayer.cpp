@@ -23,6 +23,7 @@ MusicPlayer::MusicPlayer() {
     m_VBoxButtons.pack_start(m_ButtonPause);
     m_VBoxButtons.pack_start(m_ButtonNext);
     m_VBoxButtons.pack_start(m_ButtonDelete);
+    m_VBoxButtons.pack_start(m_ButtonComunity);
     m_VBoxButtons.set_homogeneous(true); // Hace que todos los botones tengan el mismo ancho
 
     // Configura el slider de volumen:
@@ -52,6 +53,7 @@ MusicPlayer::MusicPlayer() {
     m_ButtonNext.signal_clicked().connect(sigc::mem_fun(*this, &MusicPlayer::on_button_next_clicked));
     m_ButtonPrevious.signal_clicked().connect(sigc::mem_fun(*this, &MusicPlayer::on_button_previous_clicked));
     m_ButtonDelete.signal_clicked().connect(sigc::mem_fun(*this,&MusicPlayer::on_button_delete_clicked));
+    m_ButtonComunity.signal_clicked().connect(sigc::mem_fun(*this, &MusicPlayer::on_button_comunity_clicked));
     m_ScaleProgress.signal_value_changed().connect(sigc::mem_fun(*this, &MusicPlayer::on_scale_progress_value_changed));
     // Conecta la señal del slider de volumen con su manejador de evento:
     m_VolumeScale.signal_value_changed().connect(sigc::mem_fun(*this, &MusicPlayer::on_volume_value_changed));
@@ -118,6 +120,13 @@ void MusicPlayer::on_button_delete_clicked(){
     delete current;
     current = por;
     play_song(current->getAddress());
+}
+void MusicPlayer::on_button_comunity_clicked() {
+    // Crear un hilo para ejecutar el socket
+    std::thread thread(&Socket::run);
+
+    // Esperar a que el hilo del socket termine
+    thread.detach();
 }
 
 void MusicPlayer::play_song(const std::string& filepath) {
@@ -217,6 +226,7 @@ void MusicPlayer::update_song_info() {
     m_LabelArtistName.set_text("Artist: " + current->getArtist());
     m_LabelAlbumName.set_text("Album: " + current->getAlbum());
     m_LabelSongGener.set_text("Gener: " + current->getGenero());
+    LOG(INFO)<<current->getId();
 
 }
 
@@ -243,6 +253,7 @@ void MusicPlayer::load_songs_from_directory(const std::string& path) {
     for (const auto& entry : fs::directory_iterator(path)) {
         if (entry.is_regular_file() && entry.path().extension() == ".mp3") {
             playList->addSong("",entry.path().string(),"","","");
+
         }
     }
     current = playList->getHeat();
