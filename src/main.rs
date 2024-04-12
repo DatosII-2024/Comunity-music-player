@@ -21,17 +21,19 @@ fn main() {
     btn_upvote.set_color(fltk::enums::Color::from_u32(0xFFE4C4));
     btn_upvote.set_label_size(15);
 
-        // Lógica de voto hacia arriba
+        // Lógica de vote up
         btn_upvote.handle(move |_btn_upvote, _ev| {
 
-            // Envía el voto hacia arriba y lo conecta
+            // Envía el vote up y lo conecta
             if let Ok(mut stream) = TcpStream::connect("127.0.0.1:8080") {
                
-                // manda el comando que diga que se presionò exactamente es
+                // manda el comando que diga que se presionò exactamente ese boton como una señal para que se actualice en el servidor
                 let command = "vote_up";
+
                 // Envía el comando al servidor a través del socket
                 let _ = stream.write_all(command.as_bytes());
             }
+
             // Retorna true para indicar que el evento ha sido manejado
             true
         });
@@ -40,10 +42,10 @@ fn main() {
     btn_downvote.set_color(fltk::enums::Color::from_u32(0xFFE4C4));
     btn_downvote.set_label_size(15);
 
-        // Lógica de voto hacia abajo
+        // Lógica de vote down
         btn_downvote.handle(move |_btn_downvote, _ev| {
 
-            // Envía el voto hacia abajo y lo conecta
+            // Envía el vote downy lo conecta
             if let Ok(mut stream) = TcpStream::connect("127.0.0.1:8080") {
 
                 // manda el comando que diga que se presionó exactamente este botón
@@ -59,7 +61,51 @@ fn main() {
 
     let mut btn_playlist = button::Button::new(350, 60, 80, 40, "Playlist");
     btn_playlist.set_color(fltk::enums::Color::from_u32(0xFFE4C4));
+    btn_playlist.set_label_size(15);// Botón de la playlist
+    let mut btn_playlist = button::Button::new(350, 60, 80, 40, "Playlist");
+    btn_playlist.set_color(fltk::enums::Color::from_u32(0xFFE4C4));
     btn_playlist.set_label_size(15);
+    
+    // Lógica del botón de la playlist
+    btn_playlist.handle(move |_btn_playlist, _ev| {
+
+        // Envía una solicitud al servidor para obtener la información de la canción reciente
+        if let Ok(mut stream) = TcpStream::connect("127.0.0.1:8080") {
+
+            // Envía el comando que solicita la información de la canción reciente
+            let command = "get_song_info";
+            if let Err(err) = stream.write_all(command.as_bytes()) {
+                eprintln!("Error al enviar la solicitud al servidor: {}", err);
+                return true; // Indica que el evento ha sido manejado
+            }
+    
+            // Lee la respuesta del servidor
+            let mut buffer = [0; 1024];
+            match stream.read(&mut buffer) {
+                Ok(n) => {
+
+                    // Convierte los datos recibidos a una estructura Song
+                    if let Ok(song) = serde_json::from_slice::<Song>(&buffer[..n]) {
+
+                        // Actualiza la interfaz de usuario con la información de la canción que debemos tener
+                        update_playlist_ui(&song);
+                    }
+                },
+                Err(err) => {
+                    eprintln!("Error al recibir la respuesta del servidor: {}", err);
+                }
+            }
+        } else {
+            eprintln!("Error al conectar al servidor");
+        }
+    
+        true // Indica que el evento ha sido manejado
+    });
+    
+    // Función para actualizar la interfaz de usuario con la información de la canción
+    fn update_playlist_ui(song: &Song) {
+    }
+    
 
 
 
