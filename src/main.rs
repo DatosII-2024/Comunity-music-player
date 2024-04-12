@@ -21,13 +21,47 @@ fn main() {
     btn_upvote.set_color(fltk::enums::Color::from_u32(0xFFE4C4));
     btn_upvote.set_label_size(15);
 
+        // Lógica de voto hacia arriba
+        btn_upvote.handle(move |_btn_upvote, _ev| {
+
+            // Envía el voto hacia arriba y lo conecta
+            if let Ok(mut stream) = TcpStream::connect("127.0.0.1:8080") {
+               
+                // manda el comando que diga que se presionò exactamente es
+                let command = "vote_up";
+                // Envía el comando al servidor a través del socket
+                let _ = stream.write_all(command.as_bytes());
+            }
+            // Retorna true para indicar que el evento ha sido manejado
+            true
+        });
+
     let mut btn_downvote = button::Button::new(250, 60, 80, 40, "Vote down");
     btn_downvote.set_color(fltk::enums::Color::from_u32(0xFFE4C4));
     btn_downvote.set_label_size(15);
 
+        // Lógica de voto hacia abajo
+        btn_downvote.handle(move |_btn_downvote, _ev| {
+
+            // Envía el voto hacia abajo y lo conecta
+            if let Ok(mut stream) = TcpStream::connect("127.0.0.1:8080") {
+
+                // manda el comando que diga que se presionó exactamente este botón
+                let command = "vote_down";
+        
+                // Envía el comando al servidor a través del socket
+                let _ = stream.write_all(command.as_bytes());
+    }
+            // Retorna true para indicar que el evento ha sido manejado
+            true
+        });
+
+
     let mut btn_playlist = button::Button::new(350, 60, 80, 40, "Playlist");
     btn_playlist.set_color(fltk::enums::Color::from_u32(0xFFE4C4));
     btn_playlist.set_label_size(15);
+
+
 
     // Titulos 
     let mut title_label = frame::Frame::new(10, 10, 580, 40, "Community Music Player");
@@ -68,21 +102,6 @@ fn main() {
     let (sender, receiver) = mpsc::channel();
 
     start_server(sender.clone());
-
-    // Lógica de voto hacia arriba
-    btn_upvote.handle(move |_btn_upvote, _ev| {
-
-        // Envía el voto hacia arriba y lo conecta
-        if let Ok(mut stream) = TcpStream::connect("127.0.0.1:8080") {
-           
-            // manda el comando que diga que se presionò exactamente es
-            let command = "vote_up";
-            // Envía el comando al servidor a través del socket
-            let _ = stream.write_all(command.as_bytes());
-        }
-        // Retorna true para indicar que el evento ha sido manejado
-        true
-    });
 
     // Hilo para actualizar la interfaz gráfica con los datos de la canción
     thread::spawn(move || {
