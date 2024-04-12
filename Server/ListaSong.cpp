@@ -22,8 +22,8 @@ public:
     }
 
     // Método para agregar una nueva canción al final de la lista
-    void addSong(std::string name, std::string address, std::string album, std::string artist, int year) {
-        Song* newSong = new Song(name, address, album, artist, year);
+    void addSong(std::string name, std::string address, std::string album, std::string artist,std::string genero) {
+        Song* newSong = new Song(name, address, artist, album,genero);
         if (head == nullptr) {
             head = newSong;
             head->setNext(head);
@@ -35,6 +35,9 @@ public:
             newSong->setNext(head);
             head->setPrev(newSong);
         }
+    }
+    Song* getHeat(){
+        return head;
     }
 
     // Método para imprimir todas las canciones en la lista

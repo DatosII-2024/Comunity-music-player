@@ -6,7 +6,9 @@ project(Comunity_music_player)
 set(CMAKE_CXX_STANDARD 17)
 
 # Encuentra las dependencias
-find_package(PkgConfig REQUIRED)
+find_package(PkgConfig REQUIRED
+        Boost REQUIRED COMPONENTS uuid
+)
 pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 
@@ -27,6 +29,8 @@ add_executable(Comunity_music_player
                 Server/Song.h
                 Server/MusicPlayer.cpp
                 Server/Socket.cpp
+        Server/Artist.h
+        Server/Artist.cpp
 )
 
 target_link_libraries(Comunity_music_player
@@ -39,4 +43,8 @@ target_link_libraries(Comunity_music_player
 # Enlaza con stdc++fs si es necesario (GCC < 9)
 if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
     target_link_libraries(MiReproductorDeMusica stdc++fs)
+endif()
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    target_link_libraries(your_target_name ${Boost_LIBRARIES})
 endif()

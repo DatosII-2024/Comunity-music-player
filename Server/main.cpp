@@ -20,8 +20,5 @@ int main(int argc, char *argv[]) {
     MusicPlayer player;
     return app->run(player);
 
-
-
-
     return 0;
 }

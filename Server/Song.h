@@ -2,30 +2,53 @@
 #define COMUNITY_MUSIC_PLAYER_SONG_H
 
 #include <string>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 
 using namespace std;
 
 class Song {
 private:
+    string id;
     string name;
-    string address;
     string album;
     string artist;
-    int year;
+    string genero;
+    int up;
+    int down;
+    string address;
     Song* next;
     Song* prev;
+    bool full;
 
 public:
-    Song(string,string,string,string,int);
+    Song(string,string,string,string,string);
     void setNext(Song*);
     void setPrev(Song*);
+    void setUp(int);
+    void setDown(int);
+    void setFull();
+    void setName(string);
+    void setAlbun(string);
+    void setArtist(string);
+    void setGenero(string);
     string getName();
     string getAddress();
     string getAlbum();
     string getArtist();
-    int getYear();
+    string getGenero();
+    int getUp();
+    int getDown();
+    bool getFull();
     Song* getNext();
     Song* getPrev();
+
+    string generate_uuid();
 };
 
 
